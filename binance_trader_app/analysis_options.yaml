@@ -1,0 +1,14 @@
+# Static analysis configuration.
+#
+# Uses the official Flutter lint ruleset. Run:
+#   flutter analyze
+#
+# Optional auto-fixes for style hints (e.g. missing `const`):
+#   dart fix --apply
+
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Never let a dangling future be a silent no-op in a trading app.
+    - unawaited_futures

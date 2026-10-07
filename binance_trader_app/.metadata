@@ -1,0 +1,26 @@
+# This file tracks properties of this Flutter project.
+# Used by tooling to recreate ephemeral directories and to run migrations.
+#
+# If you run `flutter create .` inside this folder, the tooling will use the
+# information below to (re)generate the platform folders it manages.
+version:
+  revision: "stable"
+  channel: "stable"
+
+project_type: app
+
+# Tracks metadata for the flutter migrate command.
+migration:
+  platforms:
+    - platform: root
+      create_revision: stable
+      base_revision: stable
+    - platform: android
+      create_revision: stable
+      base_revision: stable
+    - platform: web
+      create_revision: stable
+      base_revision: stable
+
+  # Uncomment to opt out of a future migration.
+  # unmanaged_files: []

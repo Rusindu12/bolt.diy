@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+      Required for development: the Flutter tool communicates with the running
+      app to enable hot reload and the Dart VM service.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      Cleartext traffic is only enabled for debug/profile builds so the VM
+      service and local dev servers work; release builds keep the platform
+      default (TLS only), which is what a trading app wants.
+    -->
+    <application android:usesCleartextTraffic="true" />
+</manifest>

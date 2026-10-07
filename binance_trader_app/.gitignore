@@ -1,0 +1,63 @@
+# The parent repository (bolt.diy) ignores *.md globally; this project's
+# documentation is part of the deliverable, so it is explicitly re-included.
+!README.md
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ / VS Code
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# Dart / Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+doc/api/
+
+# Symbolication / obfuscation artefacts
+app.*.symbols
+app.*.map.json
+
+# Android
+android/local.properties
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/captures/
+android/key.properties
+**/GeneratedPluginRegistrant.java
+*.jks
+*.keystore
+
+# iOS / macOS (present only if you run `flutter create .` for those platforms)
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/.last_build_id
+macos/Pods/
+
+# Local secrets: never commit real API keys.
+.env
+*.env.local
+secrets.json
