@@ -5,6 +5,10 @@ against the official public REST + WebSocket APIs. It ships with a Testnet/Live
 switch, hardware-backed key storage, live price streaming, balances, market and
 limit orders, order history and a dark trading UI.
 
+> **Want the APK without installing anything?** See
+> [section 6.0](#60-fastest-option-let-github-build-it-no-local-setup) - the
+> included GitHub Actions workflow builds it for you in about eight minutes.
+
 > **This project contains no API keys.** You paste your own key/secret into the
 > app; they are stored in the Android Keystore / iOS Keychain and are never
 > hardcoded, logged or uploaded anywhere except to Binance itself.
@@ -78,14 +82,15 @@ Additional production details:
 
 ```
 binance_trader_app/
-├── android/                      # Android host project (Kotlin, AGP 8.9, Gradle 8.12)
+├── android/                      # Android host project (Kotlin DSL, AGP 9.1, Gradle 9.3.1)
 │   ├── app/
-│   │   ├── build.gradle          # minSdk 24, release signing from key.properties
+│   │   ├── build.gradle.kts      # minSdk 24, release signing from key.properties
 │   │   └── src/main/
 │   │       ├── AndroidManifest.xml
 │   │       ├── kotlin/…/MainActivity.kt
 │   │       └── res/              # launch theme, colours, launcher icon (all densities)
-│   ├── gradlew, gradlew.bat, gradle/wrapper/gradle-wrapper.jar
+│   ├── build.gradle.kts, settings.gradle.kts, gradle.properties
+│   ├── gradlew, gradlew.bat, gradle/wrapper/gradle-wrapper.jar (Gradle 9.3.1)
 │   └── key.properties.example    # template for release signing
 ├── lib/
 │   ├── main.dart                 # entry point + dependency injection (provider)
@@ -131,18 +136,25 @@ binance_trader_app/
 
 | Tool | Version |
 |------|---------|
-| Flutter | 3.24 or newer (stable channel) |
-| Dart | 3.5 or newer (bundled with Flutter) |
+| Flutter | 3.47.6 or newer (stable channel) |
+| Dart | 3.13 or newer (bundled with Flutter) |
 | JDK | 17 (bundled with current Android Studio, or `openjdk-17-jdk`) |
-| Android SDK | Platform 34/35/36 + Build-Tools + Platform-Tools |
+| Gradle | 9.3.1 (via the committed wrapper) |
+| Android Gradle Plugin | 9.1.0 / Kotlin 2.4.0 |
+| Android SDK | Platform 36 + Build-Tools 36 + Platform-Tools |
 | Android device | API 24 (Android 7.0) or newer |
+
+The Android build files are Kotlin-DSL (`.kts`) and use exactly the Gradle,
+AGP and Kotlin versions that the Flutter 3.47 template ships, so the Flutter
+Gradle plugin, the Android plugin and the Kotlin compiler stay in step.
 
 Check your setup:
 
 ```bash
-flutter --version
+flutter --version      # 3.47.6 or newer
 flutter doctor -v      # the Android toolchain section must be green
 java -version          # must report 17.x
+cd android && ./gradlew --version   # optional: checks the Gradle wrapper
 ```
 
 ---
@@ -171,6 +183,25 @@ to unlock balances and trading.
 ---
 
 ## 6. Building the APK
+
+### 6.0 Fastest option: let GitHub build it (no local setup)
+
+This repository ships a workflow (`.github/workflows/build-apk.yml`) that builds
+the APK on GitHub's machines. Nothing to install locally:
+
+1. Open the **Actions** tab of the repository. If you see the banner
+   *"Workflows aren't being run on this forked repository"*, click
+   **I understand my workflows, go ahead and enable them** (forks start with
+   Actions switched off).
+2. Choose **Build Android APK** → **Run workflow** → **Run workflow**.
+3. After ~8 minutes the run finishes and the APK is available in two places:
+   * the run summary → **Artifacts** → `binance-trader-apk`, and
+   * the repository **Releases** page (a release is created automatically), e.g.
+     `https://github.com/<you>/<repo>/releases` → download `app-release.apk`.
+
+Copy the APK to your phone (or download it directly on the phone), tap it and
+allow installation from unknown sources. If a previous version is installed,
+uninstall it first - the CI build is signed with a fresh debug key.
 
 ### 6.1 Release APK (single, universal)
 
