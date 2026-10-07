@@ -14,9 +14,9 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    // Applied explicitly: the app module contains MainActivity.kt.
-    id("org.jetbrains.kotlin.android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin plugins.
+    // The Flutter Gradle Plugin applies the Kotlin plugin for the app module
+    // (Kotlin sources such as MainActivity.kt are compiled without declaring
+    // `org.jetbrains.kotlin.android` here, which Flutter 3.47 warns about).
     id("dev.flutter.flutter-gradle-plugin")
 }
 

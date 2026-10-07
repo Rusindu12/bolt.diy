@@ -6,7 +6,7 @@
 // Versions are the ones Flutter 3.47.x ships in its own template:
 //   Gradle 9.3.1  (gradle/wrapper/gradle-wrapper.properties)
 //   AGP    9.1.0  (below)
-//   Kotlin 2.4.0  (below)
+//   Kotlin         (applied by the Flutter Gradle Plugin)
 // Keeping these in step with the Flutter release is what makes the Gradle
 // plugin, the Android plugin and the Kotlin compiler agree with each other.
 
@@ -32,7 +32,8 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "9.1.0" apply false
-    id("org.jetbrains.kotlin.android") version "2.4.0" apply false
+    // No Kotlin plugin declaration: the Flutter Gradle Plugin applies the exact
+    // Kotlin version that matches this Flutter release.
 }
 
 include(":app")

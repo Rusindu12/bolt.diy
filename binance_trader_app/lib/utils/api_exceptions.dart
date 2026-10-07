@@ -20,12 +20,15 @@ abstract class AppException implements Exception {
 
 /// Any failure reported by Binance (HTTP 4xx/5xx with a JSON body).
 class BinanceApiException extends AppException {
+  // `message` is positional on [AppException], so it is forwarded explicitly
+  // instead of being declared as `super.message` (which would be a named
+  // super-parameter without a matching super constructor parameter).
   const BinanceApiException({
-    required super.message,
+    required String message,
     this.code,
     this.httpStatus,
     super.detail,
-  });
+  }) : super(message);
 
   /// Binance error code, e.g. `-2015`. Null for non-JSON failures.
   final int? code;
