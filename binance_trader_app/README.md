@@ -137,7 +137,7 @@ binance_trader_app/
 | Tool | Version |
 |------|---------|
 | Flutter | 3.47.6 or newer (stable channel) |
-| Dart | 3.13 or newer (bundled with Flutter) |
+| Dart | 3.8 or newer (3.13 ships with Flutter 3.47.6) |
 | JDK | 17 (bundled with current Android Studio, or `openjdk-17-jdk`) |
 | Gradle | 9.3.1 (via the committed wrapper) |
 | Android Gradle Plugin | 9.1.0 / Kotlin 2.4.0 |
@@ -375,14 +375,16 @@ Testnet endpoints used by the app:
 
 ## 10. Security notes
 
-* Keys live in `flutter_secure_storage` (Android Keystore / iOS Keychain;
-  `EncryptedSharedPreferences` is enabled). Nothing sensitive is written to
-  `shared_preferences` – only the symbol, the environment and flags.
+* Keys live in `flutter_secure_storage` 11 (AES-GCM data encryption with the
+  key wrapped by RSA-OAEP inside the Android Keystore / iOS Keychain) in a
+  dedicated storage namespace. Nothing sensitive is written to
+  `shared_preferences` — only the symbol, the environment and flags.
 * Android backup/transfer of app data is disabled
   (`allowBackup="false"` + `data_extraction_rules.xml`), so keys cannot be
   exfiltrated through cloud backups.
-* If the encrypted entries cannot be decrypted (e.g. after a keystore reset) the
-  app wipes them, warns you and asks for the keys again instead of crashing.
+* If an encrypted entry can no longer be decrypted (keystore reset, restored
+  backup, reinstalled app) it is erased and the app falls back to the setup
+  screen instead of crashing (`resetOnError`).
 * Withdrawals are never implemented – the app only calls spot trading endpoints.
 * The release build allows **no cleartext traffic**; every call goes to Binance
   over TLS. (Debug/profile builds enable cleartext only for the Flutter tool.)

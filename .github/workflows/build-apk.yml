@@ -146,7 +146,17 @@ jobs:
             binance_trader_app/build/app/outputs/flutter-apk/app-*-release.apk
 
       - name: Publish APK to a GitHub Release
-        if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.make_release != 'false') || github.ref == 'refs/heads/main' }}
+        # Releases are published for the project + session branches and for
+        # manual runs, so the APK always has a stable download link. The
+        # `workflow_dispatch` UI only lists workflows that exist on the default
+        # branch, so a push to one of these branches is the usual way to start
+        # a build on a fork.
+        if: >-
+          ${{
+            (github.event_name == 'workflow_dispatch' && github.event.inputs.make_release != 'false')
+            || github.ref == 'refs/heads/main'
+            || github.ref == 'refs/heads/arena/b7ab3c24-bolt-diy'
+          }}
         working-directory: ${{ env.APP_DIR }}
         env:
           GH_TOKEN: ${{ github.token }}

@@ -14,10 +14,21 @@ import '../models/binance_environment.dart';
 class SettingsService {
   SettingsService({FlutterSecureStorage? secureStorage})
       : _storage = secureStorage ??
-            FlutterSecureStorage(
-              // EncryptedSharedPreferences stores an AES key inside the Android
-              // Keystore, so the raw secret never lands in plain text.
-              aOptions: AndroidOptions(encryptedSharedPreferences: true),
+            const FlutterSecureStorage(
+              // flutter_secure_storage >= 10 encrypts everything with AES-GCM
+              // and wraps the key with RSA-OAEP inside the Android Keystore /
+              // iOS Keychain - the raw secret never lands in plain text.
+              aOptions: AndroidOptions(
+                // Erase an entry that can no longer be decrypted (keystore
+                // reset, restored backup, app reinstall) instead of throwing,
+                // so the app falls back to the setup screen instead of
+                // crashing on start.
+                resetOnError: true,
+                // Keep this app's entries in their own namespace so another
+                // plugin/app using the same preferences file cannot collide
+                // with - or read - our keys.
+                storageNamespace: 'binance_trader_app',
+              ),
             );
 
   static const String _apiKeyPrefix = 'binance_api_key_';

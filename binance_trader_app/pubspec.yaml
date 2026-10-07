@@ -10,8 +10,9 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  # Flutter 3.24+ / Dart 3.5+. Tested against the current Flutter stable channel.
-  sdk: '>=3.5.0 <4.0.0'
+  # Dart 3.8 is the floor required by flutter_secure_storage 11.
+  # Verified against Flutter 3.47.6 / Dart 3.13 (current stable).
+  sdk: '>=3.8.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -27,7 +28,10 @@ dependencies:
   web_socket_channel: ^3.0.0
 
   # --- Hardware-backed storage (Android Keystore / iOS Keychain) -------------
-  flutter_secure_storage: ^9.2.2
+  # 11.x: AES-GCM + RSA-OAEP key wrapping, minSdk 24. The `encryptedShared
+  # Preferences` option of 9.x was removed in 10.0, which is why the constraint
+  # starts at 11.
+  flutter_secure_storage: ^11.0.0
 
   # --- State management ------------------------------------------------------
   provider: ^6.1.2
