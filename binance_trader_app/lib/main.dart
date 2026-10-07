@@ -72,7 +72,10 @@ class _BinanceTraderAppState extends State<BinanceTraderApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: <SingleChildWidget>[
+      // Provider list typed by inference: `SingleChildWidget` lives in
+      // provider's single_child_widget.dart, which the main library does not
+      // re-export, so it is never named explicitly here.
+      providers: [
         ChangeNotifierProvider<AppState>.value(value: _appState),
         ChangeNotifierProvider<TradeState>.value(value: _tradeState),
         ChangeNotifierProvider<OrdersState>.value(value: _ordersState),

@@ -16,7 +16,10 @@ void main() {
     test('adds decimals for small prices', () {
       expect(formatPrice(1.2345), '1.2345');
       expect(formatPrice(0.5), '0.50000');
-      expect(formatPrice(0.00001234), '0.000012');
+      // Below 0.0001 the full 8-decimal precision is kept so that meme-coin
+      // prices stay readable.
+      expect(formatPrice(0.00001234), '0.00001234');
+      expect(formatPrice(0.00012345), '0.000123');
     });
 
     test('handles zero and non finite values', () {

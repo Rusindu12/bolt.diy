@@ -583,7 +583,7 @@ class AppState extends ChangeNotifier {
     }
     String replacement = SettingsService.fallbackSymbol;
     if (SymbolInfo.find(_symbols, replacement) == null) {
-      final SymbolInfo? preferred = _symbols.firstWhere(
+      final SymbolInfo preferred = _symbols.firstWhere(
         (SymbolInfo info) => info.quoteAsset == 'USDT',
         orElse: () => _symbols.first,
       );

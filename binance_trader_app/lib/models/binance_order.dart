@@ -230,5 +230,5 @@ class BinanceOrder {
   @override
   String toString() =>
       '#$orderId ${side.apiValue} ${type.apiValue} $symbol '
-      '${origQuantity} @ ${displayPrice} (${status.apiValue})';
+      '$origQuantity @ $displayPrice (${status.apiValue})';
 }

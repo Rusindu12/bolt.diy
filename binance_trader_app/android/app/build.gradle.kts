@@ -1,3 +1,5 @@
+import java.util.Properties
+
 // App module build file (Kotlin DSL, mirroring the Flutter 3.47 template).
 //
 // Two deliberate additions to the template:
@@ -20,10 +22,13 @@ plugins {
 
 // ---- optional release keystore ---------------------------------------------
 val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = java.util.Properties()
+// NOTE: `Properties()` (imported above) and not `java.util.Properties()`: inside
+// a Kotlin DSL script `java` resolves to Gradle's java extension, which makes
+// the fully qualified form fail with "Unresolved reference 'util'".
+val keystoreProperties = Properties()
 val hasReleaseKeystore = keystorePropertiesFile.exists()
 if (hasReleaseKeystore) {
-    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+    keystorePropertiesFile.inputStream().use { stream -> keystoreProperties.load(stream) }
 }
 
 android {

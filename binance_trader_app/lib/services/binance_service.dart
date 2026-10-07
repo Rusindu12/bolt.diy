@@ -404,7 +404,7 @@ class BinanceService {
   }) async {
     final http.Response response = await _send(
       () => _client.get(_uri(path, params), headers: _publicHeaders()),
-      '$path',
+      path,
     );
     return _decode(response);
   }

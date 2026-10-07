@@ -160,7 +160,7 @@ class SymbolInfo {
     if (step <= 0 || quantity <= 0) {
       return quantity;
     }
-    final double steps = (quantity / step).floorToDouble();
+    final double steps = _floorToStep(quantity / step);
     return _clean(steps * step, quantityDecimals(market: market));
   }
 
@@ -169,7 +169,7 @@ class SymbolInfo {
     if (tickSize <= 0 || price <= 0) {
       return price;
     }
-    final double ticks = (price / tickSize).floorToDouble();
+    final double ticks = _floorToStep(price / tickSize);
     return _clean(ticks * tickSize, priceDecimals);
   }
 
@@ -316,6 +316,20 @@ int _decimalsOf(double step) {
     return (text.length - dot - 1).clamp(0, 8);
   }
   return 0;
+}
+
+/// Floors a step/tick ratio, treating anything within floating point noise of
+/// an integer as that integer.
+///
+/// Without this, `0.5 / 0.00001` (49999.99999999999) floors to 49999 steps and
+/// silently shortens a perfectly valid order by one step size.
+double _floorToStep(double ratio) {
+  final double nearest = ratio.roundToDouble();
+  final double tolerance = 1e-9 * (1 + ratio.abs());
+  if ((ratio - nearest).abs() <= tolerance) {
+    return nearest;
+  }
+  return ratio.floorToDouble();
 }
 
 /// Removes floating point noise: `0.30000000000000004` -> `0.3`.

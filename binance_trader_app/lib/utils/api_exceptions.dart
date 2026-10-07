@@ -21,7 +21,7 @@ abstract class AppException implements Exception {
 /// Any failure reported by Binance (HTTP 4xx/5xx with a JSON body).
 class BinanceApiException extends AppException {
   const BinanceApiException({
-    required String message,
+    required super.message,
     this.code,
     this.httpStatus,
     super.detail,

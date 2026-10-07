@@ -131,7 +131,7 @@ String maskSecret(String value) {
     return '';
   }
   if (value.length <= 8) {
-    return '${'*' * value.length}';
+    return '*' * value.length;
   }
   return '${value.substring(0, 4)}...${value.substring(value.length - 4)}';
 }
