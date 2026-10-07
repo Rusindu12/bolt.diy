@@ -7,7 +7,12 @@ limit orders, order history and a dark trading UI.
 
 > **Want the APK without installing anything?** See
 > [section 6.0](#60-fastest-option-let-github-build-it-no-local-setup) - the
-> included GitHub Actions workflow builds it for you in about eight minutes.
+> included GitHub Actions workflow builds it for you in about seven minutes.
+
+> **Build status:** the workflow has been run end to end against Flutter 3.47.6:
+> `flutter analyze` reports *No issues found!*, all 56 tests pass and
+> `flutter build apk --release` produces installable APKs (universal + one per
+> CPU architecture).
 
 > **This project contains no API keys.** You paste your own key/secret into the
 > app; they are stored in the Android Keystore / iOS Keychain and are never
@@ -193,15 +198,37 @@ the APK on GitHub's machines. Nothing to install locally:
    *"Workflows aren't being run on this forked repository"*, click
    **I understand my workflows, go ahead and enable them** (forks start with
    Actions switched off).
-2. Choose **Build Android APK** → **Run workflow** → **Run workflow**.
-3. After ~8 minutes the run finishes and the APK is available in two places:
-   * the run summary → **Artifacts** → `binance-trader-apk`, and
-   * the repository **Releases** page (a release is created automatically), e.g.
-     `https://github.com/<you>/<repo>/releases` → download `app-release.apk`.
+2. Either push a change under `binance_trader_app/` (the workflow triggers
+   automatically) or choose **Build Android APK** → **Run workflow** → **Run
+   workflow**.
+3. After roughly seven minutes the run finishes and the APK is available in two
+   places:
+   * the run page → **Artifacts** → `binance-trader-apk` (a zip containing every
+     APK, kept for 30 days), and
+   * the repository **Releases** page, under the tag `apk-build-<run number>`
+     (e.g. `apk-build-6`), kept permanently.
+
+Which file to download from the release:
+
+| File | Size | Use it when |
+| --- | --- | --- |
+| `app-arm64-v8a-release.apk` | ~23 MB | almost every phone from the last few years - **recommended** |
+| `app-armeabi-v7a-release.apk` | ~20 MB | older 32-bit devices |
+| `app-x86_64-release.apk` | ~24 MB | emulators / x86 tablets |
+| `app-release.apk` | ~57 MB | universal build with all architectures - use it if unsure |
+
+Direct links. `releases/latest` always points at the newest build, so these never
+go stale:
+
+```
+https://github.com/Rusindu12/bolt.diy/releases/latest/download/app-arm64-v8a-release.apk
+https://github.com/Rusindu12/bolt.diy/releases/latest/download/app-release.apk
+```
 
 Copy the APK to your phone (or download it directly on the phone), tap it and
-allow installation from unknown sources. If a previous version is installed,
-uninstall it first - the CI build is signed with a fresh debug key.
+allow installation from unknown sources. If a previous build of this app is
+installed, uninstall it first - CI builds are signed with a fresh debug key, so
+the signature does not match yours and Android refuses to update over it.
 
 ### 6.1 Release APK (single, universal)
 
