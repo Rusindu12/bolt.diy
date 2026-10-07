@@ -1,0 +1,235 @@
+name: Build Android APK
+
+# Builds the Binance Trader APK on GitHub's runners, because that needs the
+# Flutter SDK + Android SDK which are not installed in every environment.
+#
+# How to use it:
+#   1. Make sure Actions are enabled for this repository (Actions tab ->
+#      "I understand my workflows, go ahead and enable them").
+#   2. Actions -> "Build Android APK" -> Run workflow.
+#   3. When the run turns green, download the APK from
+#      * the summary of the run (Artifacts), or
+#      * the Releases page (the APK is attached to a release automatically).
+
+on:
+  workflow_dispatch:
+    inputs:
+      flutter_version:
+        description: 'Flutter version to build with (empty = latest stable)'
+        required: false
+        default: '3.47.6'
+        type: string
+      make_release:
+        description: 'Attach the APK to a GitHub Release'
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches:
+      - main
+      - arena/b7ab3c24-bolt-diy
+    paths:
+      - 'binance_trader_app/**'
+      - '.github/workflows/build-apk.yml'
+
+# Needed to create the release + tag with the workflow token.
+permissions:
+  contents: write
+
+# Never run two APK builds for the same ref at the same time.
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: Build release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      # Fallback for push-triggered runs where no input exists.
+      FLUTTER_VERSION: ${{ github.event.inputs.flutter_version || '3.47.6' }}
+      APP_DIR: binance_trader_app
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Show tool versions
+        run: |
+          flutter --version
+          dart --version
+          java -version
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+      - name: Prepare Android SDK packages
+        # The runner image already ships an SDK; this makes sure the exact
+        # platform/build-tools the build needs are present and licensed.
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(command -v sdkmanager || true)"
+          fi
+          if [ -n "$SDKMANAGER" ] && [ -x "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+            "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0" > /dev/null 2>&1 || true
+          else
+            echo "sdkmanager not found - relying on the preinstalled SDK"
+          fi
+          ls "$ANDROID_HOME/platforms" 2>/dev/null || true
+          ls "$ANDROID_HOME/build-tools" 2>/dev/null || true
+
+      - name: Resolve Dart/Flutter dependencies
+        working-directory: ${{ env.APP_DIR }}
+        run: flutter pub get
+
+      - name: Static analysis (report only)
+        # Never blocks the APK: a lint or an informational analyzer message must
+        # not stop the build. The output is kept for the failure report.
+        continue-on-error: true
+        working-directory: ${{ env.APP_DIR }}
+        run: flutter analyze 2>&1 | tee /tmp/analyze.log
+
+      - name: Run tests (report only)
+        continue-on-error: true
+        working-directory: ${{ env.APP_DIR }}
+        run: flutter test 2>&1 | tee /tmp/test.log
+
+      - name: Build universal release APK
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee /tmp/build.log
+
+      - name: Build per-ABI release APKs (report only)
+        continue-on-error: true
+        working-directory: ${{ env.APP_DIR }}
+        run: flutter build apk --release --split-per-abi
+
+      - name: Report failure details
+        # Publishes the tail of the logs as a job summary *and* as a commit
+        # comment: the commit comment is what makes the error readable through
+        # the GitHub API (and from a chat/agent), which raw run logs are not.
+        if: failure() || cancelled()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo '### Build diagnostics'
+            for f in /tmp/analyze.log /tmp/test.log /tmp/build.log; do
+              [ -f "$f" ] || continue
+              echo ''
+              echo "<details><summary>$(basename "$f") (tail)</summary>"
+              echo ''
+              echo '```'
+              tail -c 8000 "$f"
+              echo '```'
+              echo '</details>'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          BODY=$(for f in /tmp/analyze.log /tmp/test.log /tmp/build.log; do
+            [ -f "$f" ] || continue
+            echo "===== $(basename "$f") ====="
+            tail -c 18000 "$f"
+            echo
+          done | tail -c 60000)
+          if [ -n "$BODY" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments"               -f body="$BODY" > /dev/null && echo "Diagnostics posted as a commit comment."
+          fi
+
+      - name: Collect build output
+        id: collect
+        if: always()
+        run: |
+          DIR="$APP_DIR/build/app/outputs/flutter-apk"
+          ls -la "$DIR"
+          {
+            echo "### Binance Trader APK"
+            echo ""
+            echo "| file | size |"
+            echo "|------|------|"
+            for f in "$DIR"/*.apk; do
+              [ -f "$f" ] || continue
+              echo "| $(basename "$f") | $(du -h "$f" | cut -f1) |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binance-trader-apk
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            binance_trader_app/build/app/outputs/flutter-apk/app-release.apk
+            binance_trader_app/build/app/outputs/flutter-apk/app-*-release.apk
+
+      - name: Publish APK to a GitHub Release
+        # Releases are published for the project + session branches and for
+        # manual runs, so the APK always has a stable download link. The
+        # `workflow_dispatch` UI only lists workflows that exist on the default
+        # branch, so a push to one of these branches is the usual way to start
+        # a build on a fork.
+        if: >-
+          ${{
+            (github.event_name == 'workflow_dispatch' && github.event.inputs.make_release != 'false')
+            || github.ref == 'refs/heads/main'
+            || github.ref == 'refs/heads/arena/b7ab3c24-bolt-diy'
+          }}
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="apk-build-${GITHUB_RUN_NUMBER}"
+          DIR="build/app/outputs/flutter-apk"
+
+          FILES=""
+          for f in "$DIR/app-release.apk" "$DIR"/app-*-release.apk; do
+            [ -f "$f" ] && FILES="$FILES $f"
+          done
+          if [ -z "$FILES" ]; then
+            echo "No APK found - skipping the release."
+            exit 0
+          fi
+
+          NOTES=$(cat <<EOF
+          Automatic build of the Binance Trader Flutter app.
+
+          * Flutter: ${FLUTTER_VERSION}
+          * Commit: ${GITHUB_SHA}
+          * Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          **app-release.apk** is the universal build (works on every device).
+          **app-arm64-v8a-release.apk** etc. are smaller per-architecture builds.
+
+          Install on an Android phone (7.0+) by opening the downloaded file.
+          The APK is signed with the debug key unless android/key.properties is
+          configured, so Android will ask you to allow installing from this source.
+          EOF
+          )
+
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Binance Trader APK - build ${GITHUB_RUN_NUMBER}" \
+            --notes "$NOTES" \
+            $FILES
+
+          echo "Release: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${TAG}"

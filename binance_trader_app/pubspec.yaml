@@ -1,0 +1,53 @@
+name: binance_trader_app
+description: >-
+  A secure Flutter client for trading on Binance Spot (Testnet and Live) with
+  WebSocket price streaming, account balances, market/limit orders, order
+  history and a dark trading UI.
+publish_to: 'none'
+
+# versionName+versionCode used by the Android build.
+# Format: <version name>+<version code>
+version: 1.0.0+1
+
+environment:
+  # Dart 3.8 is the floor required by flutter_secure_storage 11.
+  # Verified against Flutter 3.47.6 / Dart 3.13 (current stable).
+  sdk: '>=3.8.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # --- HTTP client for Binance REST endpoints ---------------------------------
+  http: ^1.2.0
+
+  # --- HMAC-SHA256 signing of private (SIGNED) requests ----------------------
+  crypto: ^3.0.3
+
+  # --- Binance WebSocket market streams --------------------------------------
+  web_socket_channel: ^3.0.0
+
+  # --- Hardware-backed storage (Android Keystore / iOS Keychain) -------------
+  # 11.x: AES-GCM + RSA-OAEP key wrapping, minSdk 24. The `encryptedShared
+  # Preferences` option of 9.x was removed in 10.0, which is why the constraint
+  # starts at 11.
+  flutter_secure_storage: ^11.0.0
+
+  # --- State management ------------------------------------------------------
+  provider: ^6.1.2
+
+  # --- Non-sensitive preferences only (symbol / environment / flags) ---------
+  shared_preferences: ^2.3.0
+
+  # --- Icons ----------------------------------------------------------------
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Official Flutter lint ruleset.
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
