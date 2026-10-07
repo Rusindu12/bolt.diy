@@ -6,7 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('formatPrice', () {
     test('uses two decimals for large prices', () {
-      expect(formatPrice(50000.125), '50,000.12');
+      // Deliberately unambiguous values: Dart's toStringAsFixed uses
+      // ECMAScript rounding, where an exact .xx5 tie rounds away from zero.
+      expect(formatPrice(50000.126), '50,000.13');
+      expect(formatPrice(50000.124), '50,000.12');
       expect(formatPrice(1234.5), '1,234.50');
     });
 

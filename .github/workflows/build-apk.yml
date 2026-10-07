@@ -100,27 +100,63 @@ jobs:
 
       - name: Static analysis (report only)
         # Never blocks the APK: a lint or an informational analyzer message must
-        # not stop the build. Failures are visible in the log.
+        # not stop the build. The output is kept for the failure report.
         continue-on-error: true
         working-directory: ${{ env.APP_DIR }}
-        run: flutter analyze
+        run: flutter analyze 2>&1 | tee /tmp/analyze.log
 
       - name: Run tests (report only)
         continue-on-error: true
         working-directory: ${{ env.APP_DIR }}
-        run: flutter test
+        run: flutter test 2>&1 | tee /tmp/test.log
 
       - name: Build universal release APK
         working-directory: ${{ env.APP_DIR }}
-        run: flutter build apk --release
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee /tmp/build.log
 
       - name: Build per-ABI release APKs (report only)
         continue-on-error: true
         working-directory: ${{ env.APP_DIR }}
         run: flutter build apk --release --split-per-abi
 
+      - name: Report failure details
+        # Publishes the tail of the logs as a job summary *and* as a commit
+        # comment: the commit comment is what makes the error readable through
+        # the GitHub API (and from a chat/agent), which raw run logs are not.
+        if: failure() || cancelled()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo '### Build diagnostics'
+            for f in /tmp/analyze.log /tmp/test.log /tmp/build.log; do
+              [ -f "$f" ] || continue
+              echo ''
+              echo "<details><summary>$(basename "$f") (tail)</summary>"
+              echo ''
+              echo '```'
+              tail -c 8000 "$f"
+              echo '```'
+              echo '</details>'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          BODY=$(for f in /tmp/analyze.log /tmp/test.log /tmp/build.log; do
+            [ -f "$f" ] || continue
+            echo "===== $(basename "$f") ====="
+            tail -c 18000 "$f"
+            echo
+          done | tail -c 60000)
+          if [ -n "$BODY" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments"               -f body="$BODY" > /dev/null && echo "Diagnostics posted as a commit comment."
+          fi
+
       - name: Collect build output
         id: collect
+        if: always()
         run: |
           DIR="$APP_DIR/build/app/outputs/flutter-apk"
           ls -la "$DIR"

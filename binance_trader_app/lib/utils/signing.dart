@@ -31,10 +31,12 @@ String buildQueryString(Map<String, String> parameters) {
       buffer.write('&');
     }
     first = false;
+    // `Uri.encodeComponent` (RFC 3986) rather than `encodeQueryComponent`:
+    // the latter applies HTML form rules and would turn a space into '+'.
     buffer
-      ..write(Uri.encodeQueryComponent(key))
+      ..write(Uri.encodeComponent(key))
       ..write('=')
-      ..write(Uri.encodeQueryComponent(value));
+      ..write(Uri.encodeComponent(value));
   });
   return buffer.toString();
 }

@@ -46,12 +46,13 @@ void main() {
       expect(query, 'symbol=BTCUSDT&side=BUY&type=MARKET&timestamp=1700000000000');
     });
 
-    test('percent-encodes keys and values', () {
+    test('percent-encodes keys and values (RFC 3986, no "+" for space)', () {
       final String query = buildQueryString(<String, String>{
         'symbol': 'BTC/USDT',
         'note': 'a b',
+        'sign': 'x&y=z',
       });
-      expect(query, 'symbol=BTC%2FUSDT&note=a%20b');
+      expect(query, 'symbol=BTC%2FUSDT&note=a%20b&sign=x%26y%3Dz');
     });
 
     test('signQuery signs exactly the query that is built', () {
