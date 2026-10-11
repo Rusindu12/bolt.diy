@@ -14,32 +14,42 @@ export default class AnthropicProvider extends BaseProvider {
 
   staticModels: ModelInfo[] = [
     {
-      name: 'claude-3-7-sonnet-20250219',
-      label: 'Claude 3.7 Sonnet',
+      name: 'claude-sonnet-5-5',
+      label: 'Claude Sonnet 5.5',
       provider: 'Anthropic',
-      maxTokenAllowed: 128000,
+      maxTokenAllowed: 64000,
     },
     {
-      name: 'claude-3-5-sonnet-latest',
-      label: 'Claude 3.5 Sonnet (new)',
+      name: 'claude-opus-5-5',
+      label: 'Claude Opus 5.5',
       provider: 'Anthropic',
-      maxTokenAllowed: 8000,
+      maxTokenAllowed: 64000,
     },
     {
-      name: 'claude-3-5-sonnet-20240620',
-      label: 'Claude 3.5 Sonnet (old)',
+      name: 'claude-haiku-5-5',
+      label: 'Claude Haiku 5.5',
       provider: 'Anthropic',
-      maxTokenAllowed: 8000,
+      maxTokenAllowed: 32000,
     },
     {
-      name: 'claude-3-5-haiku-latest',
-      label: 'Claude 3.5 Haiku (new)',
+      name: 'claude-fable-5-1',
+      label: 'Claude Fable 5.1',
       provider: 'Anthropic',
-      maxTokenAllowed: 8000,
+      maxTokenAllowed: 64000,
     },
-    { name: 'claude-3-opus-latest', label: 'Claude 3 Opus', provider: 'Anthropic', maxTokenAllowed: 8000 },
-    { name: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet', provider: 'Anthropic', maxTokenAllowed: 8000 },
-    { name: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku', provider: 'Anthropic', maxTokenAllowed: 8000 },
+    // Legacy (pre-5 generation) models that are still served by the API
+    {
+      name: 'claude-sonnet-4-6',
+      label: 'Claude Sonnet 4.6',
+      provider: 'Anthropic',
+      maxTokenAllowed: 64000,
+    },
+    {
+      name: 'claude-haiku-4-5',
+      label: 'Claude Haiku 4.5',
+      provider: 'Anthropic',
+      maxTokenAllowed: 32000,
+    },
   ];
 
   async getDynamicModels(
@@ -95,7 +105,6 @@ export default class AnthropicProvider extends BaseProvider {
     });
     const anthropic = createAnthropic({
       apiKey,
-      headers: { 'anthropic-beta': 'output-128k-2025-02-19' },
     });
 
     return anthropic(model);

@@ -68,6 +68,15 @@ export default defineConfig((config) => {
         },
       },
     },
+    server: {
+      /*
+       * Vite rejects requests whose `Host` header it does not recognise with
+       * "Blocked request. This host is not allowed." Remote sandboxes, tunnels and preview
+       * proxies (e.g. `*.e2b.app`) therefore have to be listed here explicitly.
+       * Add your own tunnel domain if you use a different one.
+       */
+      allowedHosts: ['.e2b.app'],
+    },
   };
 });
 
