@@ -45,7 +45,21 @@ jobs:
         run: chmod +x gradlew
       - name: Build APK
         working-directory: ai-agent-app/android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/gradle.log
+
+      - name: Publish build log on failure
+        if: failure()
+        shell: bash
+        run: |
+          tail -n 300 /tmp/gradle.log > apk-build-log.txt || true
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -f apk-build-log.txt
+          git commit -m "APK build log" || true
+          git push origin HEAD:arena/3055a552-bolt-diy || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
