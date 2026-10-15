@@ -1,0 +1,60 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [arena/3055a552-bolt-diy]
+    paths:
+      - 'ai-agent-app/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ai-agent-app/package-lock.json
+
+      - name: Install & build web
+        working-directory: ai-agent-app
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Sync Capacitor
+        working-directory: ai-agent-app
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: ai-agent-app/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-ai-agent-apk
+          path: ai-agent-app/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create/Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-build
+          name: Nexus AI Agent APK (latest)
+          files: ai-agent-app/android/app/build/outputs/apk/debug/app-debug.apk
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
