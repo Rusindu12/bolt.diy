@@ -13,6 +13,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v4
 
@@ -37,9 +40,12 @@ jobs:
         working-directory: ai-agent-app
         run: npx cap sync android
 
+      - name: Make gradlew executable
+        working-directory: ai-agent-app/android
+        run: chmod +x gradlew
       - name: Build APK
         working-directory: ai-agent-app/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
